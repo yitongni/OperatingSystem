@@ -12,7 +12,7 @@ long MemoryManager::fineSizeForBestFit(long bytes)
 {
     long bestFit=-1; //Set default value
     //long bestFit=std::numeric_limits<long>::max(); //Set to infinite for now
-    for(int i=0; i<Ram.size(); i++)
+    for(unsigned int i=0; i<Ram.size(); i++)
     {
         if(Ram[i].getPID()==0) //If ram block is unused
         {
@@ -48,7 +48,7 @@ bool MemoryManager::AllocateMemory(long bytes, int pid)
         }
         else
         {
-            for(int i=0; i<Ram.size(); i++)
+            for(unsigned int i=0; i<Ram.size(); i++)
             {
                 if(Ram[i].getPID()==0 && Ram[i].getMaxValue()-Ram[i].getBaseValue()==SmallestBlockSize) //Find best fit block thats unused
                 {
