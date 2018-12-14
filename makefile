@@ -5,7 +5,7 @@ CFLAGS = -c -Wall
 # Set the EXECUTABLE_NAME variable to the preferred generated executable name
 # Set the SOURCES variable to a space-separated list of all the .cpp files to compile
 EXECUTABLE_NAME = ./OS
-SOURCES = main.cpp OS.cpp Process.cpp
+SOURCES = main.cpp OS.cpp Simulation.cpp Process.cpp MemoryManager.cpp HardDisk.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 all: $(EXECUTABLE_NAME)
