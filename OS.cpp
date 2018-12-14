@@ -106,7 +106,7 @@ void OS::showProcessinReadyQueueandCPU()
 
 void OS::showProcessinIOQueueandHardDisk()
 {
-    for(int i=0; i<harddiskqueue.size(); i++)
+    for(unsigned int i=0; i<harddiskqueue.size(); i++)
     {
         cout<<harddiskqueue[i]<<endl; // Cout all process in Ready Queue
     }
@@ -122,7 +122,7 @@ void OS::terminateProcess()
 {
     if(ProcessinCPU.isEmpty()==false) //Makes sure a process is in the CPU
     {
-        for(int i=0; i<allProcesses.size(); i++)
+        for(unsigned int i=0; i<allProcesses.size(); i++)
         {
             if(allProcesses[i].GetPID()==ProcessinCPU.GetPID())
             {

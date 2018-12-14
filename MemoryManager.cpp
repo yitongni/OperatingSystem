@@ -84,7 +84,7 @@ void MemoryManager::mergeWithLeftHole(int origin, int left)
 //Whenever process is terminated we need to free up the ram space
 void MemoryManager::deleteRam(int pid)
 {
-    for(int i=0; i<Ram.size(); i++)
+    for(unsigned int i=0; i<Ram.size(); i++)
     {
         if(Ram[i].getPID()==pid) //Find the the ram space of deleted process
         {
@@ -126,7 +126,7 @@ void MemoryManager::deleteRam(int pid)
 //Output the ram state
 ostream& operator<<(ostream &out, MemoryManager a_mem)
 {
-    for(int i=0; i<a_mem.returnRam().size(); i++)
+    for(unsigned int i=0; i<a_mem.returnRam().size(); i++)
     {
         out<<a_mem.returnRam()[i].getBaseValue()<<"---"<<a_mem.returnRam()[i].getMaxValue();
         if(a_mem.returnRam()[i].getPID()==0)
