@@ -1,12 +1,13 @@
-#include <iostream>
+//Yi Tong Ni
 
-#include "OS.hpp"
+#include <iostream>
+#include "Simulation.hpp"
 
 using namespace std;
 
 int main()
-{
-    OS myOS;
-    myOS.simulateOS();
+{   
+    Simulation simulation;
+    simulation.simulateOS(); //Starts the simulation
     return 0;
 }

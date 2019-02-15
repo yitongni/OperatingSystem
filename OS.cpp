@@ -4,98 +4,137 @@
 #include <iostream>
 #include "OS.hpp"
 
-using namespace std;
-OS::~OS()
+//Creates the number of HardDisk
+void OS::createHardDisk(int numOfHD)
 {
-    cout<<"Hi"<<endl;
-    for(int i=0; i<allProcesses.size(); i++)
-	{
-		delete allProcesses[i];
-	}
-    while(!priorityqueue.empty())
+    for(int i=0; i<numOfHD; i++)
     {
-        delete priorityqueue.front();
-    }
-}
-void OS::simulateOS()
-{
-    string command="";
-    while(command!="EXIT")
-    {
-        command=commandinput(); //Gets next input
-        if(command[0]=='A')
-        {
-            createProcess(command);
-            pid++; //increment PID
-        }
-        else if(command=="S r")
-        {
-            showProcessinReadyQueueandCPU();
-        }
+        HardDisk a_HardDisk(i); //Create Hard Disk
+        harddiskqueue.push_back(a_HardDisk);
     }
 }
 
-void OS::assignProcesstoaCPU(Process* a_process)
+//Creates the memory
+void OS::createRam(long Ram)
 {
-    if(processUsingCPU==nullptr) //If CPU is empty 
+    Manager.MemBlockresize(0, Ram);
+}
+
+//This function is called whenever a process is added to the ready queue.
+void OS::checkforpreempt()
+{
+    if(ProcessinCPU.isEmpty()==false)
     {
-        sort(priorityqueue.begin(), priorityqueue.end(), sortbypriority); //Sort Process by order of priority descending
-        processUsingCPU=priorityqueue[0]; 
-        priorityqueue[0]->isUsingCPU();
+        if(priorityqueue.top().GetPriority() > ProcessinCPU.GetPriority()) //If new process has a higher priority than process in CPU
+        {
+            priorityqueue.push(ProcessinCPU); //Put process currently using CPU back into ready queue
+            ProcessinCPU=priorityqueue.top(); //Assign the first process to cpu
+            priorityqueue.pop(); //Remove the assigned process from ready queue.
+        }
+    }
+    else //This means CPU is empty
+    {
+        assignProcesstoaCPU(); 
+    }
+}
+
+// This function is called whenever the CPU is empty
+void OS::assignProcesstoaCPU()
+{
+    if(ProcessinCPU.isEmpty()==true && !priorityqueue.empty()) //If CPU not being used and there is at least 1 process in ready queue
+    {
+        ProcessinCPU=priorityqueue.top(); //Assign the first process to CPU
+        priorityqueue.pop(); //Remove process from ready queue
+    }
+}
+
+//This function is called when creating a new process
+void OS::createProcess(int priority_num, long memorySize)
+{
+    if(Manager.AllocateMemory(memorySize, pid)==false)
+    {
+        cout<<"Not Enough RAM"<<endl;
+        return;
     }
     else
     {
-        if(processUsingCPU->GetPriority() < a_process->GetPriority()) //If new process has a greater priority
-        {
-            a_process->isUsingCPU(); //New Process is using CPU
-            processUsingCPU->isNotUsingCPU(); //Old Process isn't using CPU
-            processUsingCPU=a_process; //Preempt
-            
-        }
+        Process a_process(pid, priority_num, memorySize);//Creates Process
+        pid++; //increment PID
+        allProcesses.push_back(a_process); // Push process into a list of all process
+        priorityqueue.push(a_process); //Add process to ready queue
+        checkforpreempt(); //Process is entering ready queue so we might have to preempt
     }
 }
 
-void OS::createProcess(string command)
+void OS::moveProcessToIOqueue(int hardDiskNumber, string filename)
 {
-    string stringseg;
-	vector<string> processinfo;
-    stringstream test(command);
-	while(getline(test, stringseg, ' ')) //Split the string by whitespace
-	{
-		processinfo.push_back(stringseg); //Push each segment into a vector
-	}
-    Process* a_process=new Process(pid, stoi(processinfo[1]), stoi(processinfo[2]));//Creates Process
-    allProcesses.push_back(a_process); // Push process into a list of all process
-    priorityqueue.push_back(a_process); // Push process into priority queue
-    assignProcesstoaCPU(a_process); //Assign Process to CPU
+    if(ProcessinCPU.isEmpty()==false) //Makes sure their is a process using the CPU
+    {
+        ProcessinCPU.assignFile(filename); //Give the file to process
+        harddiskqueue[hardDiskNumber].addprocesstoqueue(ProcessinCPU); //Process in CPU is added to Hard Disk # queue
+        ProcessinCPU.clear(); //Process leaves CPU
+        assignProcesstoaCPU(); //Assigns a new process to CPU
+    }
+}
+
+//This function is called whenever the hard disk has finished the work for one process.
+void OS::ProcessFinishIOqueue(int hardDiskNumber)
+{
+    if(harddiskqueue[hardDiskNumber].GetProcessUsingHD().isEmpty()==false) //Makes sure a process is using Hard Disk
+    {
+        priorityqueue.push(harddiskqueue[hardDiskNumber].GetProcessUsingHD()); //Move the process in Hard Disk into ready queue
+        harddiskqueue[hardDiskNumber].clearHardDisk(); //Process leaves Hard Disk
+        checkforpreempt(); //Since process entered ready queue
+    }
 }
 
 void OS::showProcessinReadyQueueandCPU()
 {
-    for(int i=0; i<priorityqueue.size(); i++)
+    cout<<"Using CPU: "<<endl;
+    if(ProcessinCPU.isEmpty()==false)
     {
-        if(priorityqueue[i]->isitUsingCPU()==true) //If Process is in CPU
-        {
-            cout<<(*priorityqueue[i])<<" (Currently using CPU)"<<endl;
-        }
-        else //If Process is in ready queue
-        {
-            cout<<(*priorityqueue[i])<<" (In Ready Queue)"<<endl;
-        }
+        cout<<ProcessinCPU<<endl; // Cout Process in CPU
+    }
+    cout<<"In Ready Queue:"<<endl;
+    priority_queue<Process, vector<Process>, Comparator> tempqueue=priorityqueue; //Copy queue into temp queue
+    while(!tempqueue.empty()) //While temp queue isnt empty
+    {
+        cout<<tempqueue.top()<<endl; //Cout the top
+        tempqueue.pop(); //Pop
     }
 }
 
-bool OS::sortbypriority(Process* p1, Process* p2) //Sort by Priority
+void OS::showProcessinIOQueueandHardDisk()
 {
-	return p1->GetPriority()>p2->GetPriority(); //Sort Process by order of priority descending
+    for(unsigned int i=0; i<harddiskqueue.size(); i++)
+    {
+        cout<<harddiskqueue[i]<<endl; // Cout all process in Ready Queue
+    }
 }
 
-string OS::commandinput()
-{
-    string command;
-	cout<<"> ";
-	getline(cin,command);
-	return command;
+void OS::showMemory()
+{   
+    cout<<Manager; //Show the Memory
 }
+
+//Terminates the currently running process
+void OS::terminateProcess()
+{
+    if(ProcessinCPU.isEmpty()==false) //Makes sure a process is in the CPU
+    {
+        for(unsigned int i=0; i<allProcesses.size(); i++)
+        {
+            if(allProcesses[i].GetPID()==ProcessinCPU.GetPID())
+            {
+                Manager.deleteRam(ProcessinCPU.GetPID());
+                ProcessinCPU.clear(); //Process terminated In CPU
+                allProcesses.erase(allProcesses.begin()+i); //Erase process from process table
+                break;
+            }
+        }
+    }
+    assignProcesstoaCPU(); //Since Process left CPU we need to assign new process to CPU
+}
+
 
 #endif
