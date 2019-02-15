@@ -2,56 +2,53 @@
 #define PROCESS_HPP
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 
 class Process
 {
 public:
-    Process(int id, int priority, int memory_size)
-    {
-        pid=id;
-        memorySize=memory_size;
-        priority_number=priority;
-        cout<<"Process "<<pid<<" created with priority "<<priority_number<<" and memory size "<<memorySize<<endl;
-    }
-    ~Process(){}
 
-    int GetPID()
-    {
+    Process(){}//Default
+    Process(int id, int priority, long memory_size);
+    ~Process(){} //Default Destructor
+
+    int GetPID(){
         return pid;
     }
 
-    int GetPriority()
-    {
+    int GetPriority() const{
         return priority_number;
     }
 
-    void isUsingCPU()
-    {
-        usingCPU=true;
+    string GetFilename(){
+        return filename;
     }
 
-    void isNotUsingCPU()
-    {
-        usingCPU=false;
-    }
-    bool isitUsingCPU()
-    {
-        return usingCPU;
+    void assignFile(string file){
+        filename=file;
     }
 
-    friend ostream& operator<<(ostream &out, Process &a_process)
+    long getMem()
+    {
+        return memorySize;
+    }
+
+    bool isEmpty(); // Check to see if Process is "empty"
+    void clear(); // "Empty" the process of information
+
+    friend ostream& operator<<(ostream &out, Process a_process)
     {
         out<<"PID: "<<a_process.GetPID()<<" Priority: "<<a_process.GetPriority();
         return out;
     }
 
 private:
-    int memorySize;
-    int pid;
-    int priority_number;
-    bool usingCPU=false;
+    long memorySize=0;
+    int pid=0;
+    int priority_number=0;
+    string filename;
 };
 
 #endif
